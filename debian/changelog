@@ -1,0 +1,452 @@
+ros-rolling-rmw-fastrtps-shared-cpp (6.2.1-1jammy) jammy; urgency=high
+
+  * Address linter waning for windows. (#592 <https://github.com/ros2/rmw_fastrtps/issues/592>)
+  * Add pub/sub init, publish and take instrumentation using tracetools (#591 <https://github.com/ros2/rmw_fastrtps/issues/591>)
+  * Add content filter topic feature (#513 <https://github.com/ros2/rmw_fastrtps/issues/513>)
+  * Add sequence numbers to message info structure (#587 <https://github.com/ros2/rmw_fastrtps/issues/587>)
+  * Contributors: Chen Lihui, Christophe Bedard, Ivan Santiago Paunovic, Tomoya Fujita
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Mon, 28 Mar 2022 07:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (6.2.0-1jammy) jammy; urgency=high
+
+  * Add EventsExecutor (#468 <https://github.com/ros2/rmw_fastrtps/issues/468>)
+  * Complete events support (#583 <https://github.com/ros2/rmw_fastrtps/issues/583>)
+  * Install headers to include/${PROJECT_NAME} (#578 <https://github.com/ros2/rmw_fastrtps/issues/578>)
+  * Change default to synchronous (#571 <https://github.com/ros2/rmw_fastrtps/issues/571>)
+  * Contributors: Audrow Nash, Miguel Company, Shane Loretz, iRobot ROS
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Tue, 01 Mar 2022 08:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (6.1.2-1jammy) jammy; urgency=high
+
+  * Fix cpplint error (#574 <https://github.com/ros2/rmw_fastrtps/issues/574>)
+  * Contributors: Jacob Perron
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Fri, 14 Jan 2022 08:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (6.1.1-1jammy) jammy; urgency=high
+
+  * Fixes for uncrustify 0.72 (#572 <https://github.com/ros2/rmw_fastrtps/issues/572>)
+  * Contributors: Chris Lalancette
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Fri, 17 Dec 2021 08:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (6.1.0-1jammy) jammy; urgency=high
+
+  * Add client/service QoS getters. (#560 <https://github.com/ros2/rmw_fastrtps/issues/560>)
+  * Fix QoS depth settings for clients/service being ignored. (#564 <https://github.com/ros2/rmw_fastrtps/issues/564>)
+  * Contributors: Chen Lihui, mauropasse
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Fri, 19 Nov 2021 08:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (6.0.0-1jammy) jammy; urgency=high
+
+  * Update rmw_context_impl_t definition. (#558 <https://github.com/ros2/rmw_fastrtps/issues/558>)
+  * Update the LoanManager to do internal locking. (#552 <https://github.com/ros2/rmw_fastrtps/issues/552>)
+  * Contributors: Chris Lalancette, Michel Hidalgo
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Wed, 15 Sep 2021 07:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (5.2.2-1jammy) jammy; urgency=high
+
+  * Pass the CRL down to Fast-DDS if available. (#546 <https://github.com/ros2/rmw_fastrtps/issues/546>)
+  * Contributors: Chris Lalancette
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Mon, 09 Aug 2021 07:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (5.2.1-1jammy) jammy; urgency=high
+
+  * Use the new rmw_dds_common::get_security_files (#544 <https://github.com/ros2/rmw_fastrtps/issues/544>)
+  * Support for SubscriptionOptions::ignore_local_publications (#536 <https://github.com/ros2/rmw_fastrtps/issues/536>)
+  * Change links from index.ros.org -> docs.ros.org (#539 <https://github.com/ros2/rmw_fastrtps/issues/539>)
+  * Contributors: Chris Lalancette, Jose Antonio Moral
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Wed, 30 Jun 2021 07:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (5.2.0-1jammy) jammy; urgency=high
+
+  * Add rmw_publisher_wait_for_all_acked support. (#519 <https://github.com/ros2/rmw_fastrtps/issues/519>)
+  * Contributors: Barry Xu
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Fri, 04 Jun 2021 07:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (5.1.0-1jammy) jammy; urgency=high
+
+  * Loan messages implementation (#523 <https://github.com/ros2/rmw_fastrtps/issues/523>)
+    * Added is_plain_ attribute to base TypeSupport.
+    * Added new methods to base TypeSupport.
+    * Implementation of rmw_borrow_loaned_message.
+    * Implementation of rmw_return_loaned_message_from_publisher.
+    * Enable loan messages on publishers of plain types.
+    * Implementation for taking loaned messages.
+    * Enable loan messages on subscriptions of plain types.
+  * Export rmw_dds_common as an rmw_fastrtps_shared_cpp dependency (#530 <https://github.com/ros2/rmw_fastrtps/issues/530>)
+  * Update includes after rcutils/get_env.h deprecation (#529 <https://github.com/ros2/rmw_fastrtps/issues/529>)
+  * Contributors: Christophe Bedard, Michel Hidalgo, Miguel Company
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Wed, 12 May 2021 07:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (5.0.0-1jammy) jammy; urgency=high
+
+  * Refactor to use DDS standard API (#518 <https://github.com/ros2/rmw_fastrtps/issues/518>)
+  * Unique network flows (#502 <https://github.com/ros2/rmw_fastrtps/issues/502>)
+  * updating quality declaration links (re: ros2/docs.ros2.org#52 <https://github.com/ros2/docs.ros2.org/issues/52>) (#520 <https://github.com/ros2/rmw_fastrtps/issues/520>)
+  * Contributors: Miguel Company, shonigmann
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Tue, 06 Apr 2021 07:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (4.5.0-1jammy) jammy; urgency=high
+
+  * Take and return new RMW_DURATION_INFINITE correctly (#515 <https://github.com/ros2/rmw_fastrtps/issues/515>)
+  * Contributors: Emerson Knapp
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Thu, 18 Mar 2021 07:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (4.4.0-1jammy) jammy; urgency=high
+
+  * Add RMW function to check QoS compatibility (#511 <https://github.com/ros2/rmw_fastrtps/issues/511>)
+  * Capture cdr exceptions (#505 <https://github.com/ros2/rmw_fastrtps/issues/505>)
+  * Contributors: Jacob Perron, Miguel Company
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Mon, 01 Mar 2021 08:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (4.3.0-1jammy) jammy; urgency=high
+
+
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Mon, 25 Jan 2021 08:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (4.2.0-1jammy) jammy; urgency=high
+
+  * Make sure to lock the mutex protecting client_endpoints_. (#492 <https://github.com/ros2/rmw_fastrtps/issues/492>)
+  * Contributors: Chris Lalancette
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Thu, 10 Dec 2020 08:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (4.1.0-1jammy) jammy; urgency=high
+
+  * Use interface whitelist for localhost only (#476 <https://github.com/ros2/rmw_fastrtps/issues/476>)
+  * Make use of error return value in decrement_context_impl_ref_count (#488 <https://github.com/ros2/rmw_fastrtps/issues/488>)
+  * Remove unnecessary includes (#487 <https://github.com/ros2/rmw_fastrtps/issues/487>)
+  * Use new time_utils function to limit rmw_time_t values to 32-bits (#485 <https://github.com/ros2/rmw_fastrtps/issues/485>)
+  * New environment variable to change easily the publication mode (#470 <https://github.com/ros2/rmw_fastrtps/issues/470>)
+  * Remove unused headers MessageTypeSupport.hpp and ServiceTypeSupport.hpp (#481 <https://github.com/ros2/rmw_fastrtps/issues/481>)
+  * Contributors: Jacob Perron, José Luis Bueno López, Michael Jeronimo, Miguel Company, Stephen Brawner
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Tue, 08 Dec 2020 08:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (4.0.0-1jammy) jammy; urgency=high
+
+  * Discriminate when the Client has gone from when the Client has not completely matched (#467 <https://github.com/ros2/rmw_fastrtps/issues/467>)
+    * Workaround when the client is gone before server sends response
+    * Change add to the map to listener callback
+  * Update the package.xml files with the latest Open Robotics maintainers (#459 <https://github.com/ros2/rmw_fastrtps/issues/459>)
+  * Update Quality Declarations and READMEs (#455 <https://github.com/ros2/rmw_fastrtps/issues/455>)
+    * Add QD links for dependencies to rmw_fastrtps_shared_cpp QD.
+    * Provide external dependencies QD links.
+    * Update rmw_fastrtps_shared_cpp QD: Fast DDS
+    * Update README rmw_fastrtps_shared_cpp to QL2
+  * Contributors: JLBuenoLopez-eProsima, Jaime Martin Losa, José Luis Bueno López, Michael Jeronimo
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Thu, 22 Oct 2020 07:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (3.1.4-1jammy) jammy; urgency=high
+
+  * Perform fault injection in all creation/destruction APIs. (#453 <https://github.com/ros2/rmw_fastrtps/issues/453>)
+  * Ensure rmw_destroy_node() completes despite run-time errors. (#458 <https://github.com/ros2/rmw_fastrtps/issues/458>)
+  * Handle too large QoS queue depths.  (#457 <https://github.com/ros2/rmw_fastrtps/issues/457>)
+  * Update rmw_fastrtps_cpp and rmw_fastrtps_shared_cpp QDs to QL2. (#456 <https://github.com/ros2/rmw_fastrtps/issues/456>)
+  * Contributors: Michel Hidalgo
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Fri, 02 Oct 2020 07:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (3.1.3-1jammy) jammy; urgency=high
+
+  * checked client implementation and return RMW_RET_INCORRECT_RMW_IMPLEMENTATION (#451 <https://github.com/ros2/rmw_fastrtps/issues/451>)
+  * Update service/client request/response API error returns (#450 <https://github.com/ros2/rmw_fastrtps/issues/450>)
+  * Contributors: Alejandro Hernández Cordero, Jose Tomas Lorente
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Tue, 29 Sep 2020 07:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (3.1.2-1jammy) jammy; urgency=high
+
+  * Updated publisher/subscription allocation and wait set API return codes (#443 <https://github.com/ros2/rmw_fastrtps/issues/443>)
+  * Added rmw_logging tests (#442 <https://github.com/ros2/rmw_fastrtps/issues/442>)
+  * Contributors: Alejandro Hernández Cordero
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Fri, 25 Sep 2020 07:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (3.1.1-1jammy) jammy; urgency=high
+
+  * Add tests for RMW QoS to DDS attribute conversion. (#449 <https://github.com/ros2/rmw_fastrtps/issues/449>)
+  * Make service/client construction/destruction implementation compliant (#445 <https://github.com/ros2/rmw_fastrtps/issues/445>)
+  * Contributors: Michel Hidalgo
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Thu, 24 Sep 2020 07:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (3.1.0-1jammy) jammy; urgency=high
+
+  * Inject faults on __rmw_publish() and run_listener_thread() call. (#441 <https://github.com/ros2/rmw_fastrtps/issues/441>)
+  * Update gid API return codes. (#440 <https://github.com/ros2/rmw_fastrtps/issues/440>)
+  * Update graph API return codes. (#436 <https://github.com/ros2/rmw_fastrtps/issues/436>)
+  * Contributors: Michel Hidalgo
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Wed, 23 Sep 2020 07:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (3.0.0-1jammy) jammy; urgency=high
+
+  * Update rmw_take_serialized() and rmw_take_with_message_info() error returns  (#435 <https://github.com/ros2/rmw_fastrtps/issues/435>)
+  * Update rmw_take() error returns (#432 <https://github.com/ros2/rmw_fastrtps/issues/432>)
+  * Update rmw_publish() error returns (#430 <https://github.com/ros2/rmw_fastrtps/issues/430>)
+  * Update rmw_publish_serialized_message() error returns (#431 <https://github.com/ros2/rmw_fastrtps/issues/431>)
+  * Contributors: Jose Tomas Lorente, Lobotuerk
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Fri, 18 Sep 2020 07:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (2.6.0-1jammy) jammy; urgency=high
+
+  * Improve __rmw_create_wait_set() implementation. (#427 <https://github.com/ros2/rmw_fastrtps/issues/427>)
+  * Ensure compliant matched pub/sub count API. (#424 <https://github.com/ros2/rmw_fastrtps/issues/424>)
+  * Ensure compliant publisher QoS queries. (#425 <https://github.com/ros2/rmw_fastrtps/issues/425>)
+  * Fix memory leak that wait_set might be not destoryed in some case. (#423 <https://github.com/ros2/rmw_fastrtps/issues/423>)
+  * Contributors: Chen Lihui, Michel Hidalgo
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Fri, 28 Aug 2020 07:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (2.5.0-1jammy) jammy; urgency=high
+
+  * Avoid unused identifier variable warnings. (#422 <https://github.com/ros2/rmw_fastrtps/issues/422>)
+  * Fix trying to get topic data that was already removed. (#417 <https://github.com/ros2/rmw_fastrtps/issues/417>)
+  * Contributors: Chen Lihui, Michel Hidalgo
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Fri, 07 Aug 2020 07:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (2.4.0-1jammy) jammy; urgency=high
+
+  * Ensure compliant subscription API. (#419 <https://github.com/ros2/rmw_fastrtps/issues/419>)
+  * Use package path to TypeSupport.hpp headers in ServiceTypeSupport and MessageTypeSupport (#415 <https://github.com/ros2/rmw_fastrtps/issues/415>)
+    Use package in path to TypeSupport header for ServiceTypeSupport/MessageTypeSupport
+  * Contributors: Jose Luis Rivero, Michel Hidalgo
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Thu, 06 Aug 2020 07:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (2.3.0-1jammy) jammy; urgency=high
+
+  * Ensure compliant publisher API. (#414 <https://github.com/ros2/rmw_fastrtps/issues/414>)
+  * Contributors: Michel Hidalgo
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Thu, 30 Jul 2020 07:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (2.2.0-1jammy) jammy; urgency=high
+
+  * Set context actual domain id (#410 <https://github.com/ros2/rmw_fastrtps/issues/410>)
+  * Contributors: Ivan Santiago Paunovic
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Wed, 22 Jul 2020 07:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (2.1.0-1jammy) jammy; urgency=high
+
+  * Add missing thread-safety annotation in ServicePubListener (#409 <https://github.com/ros2/rmw_fastrtps/issues/409>)
+  * Ensure compliant node construction/destruction API. (#408 <https://github.com/ros2/rmw_fastrtps/issues/408>)
+  * Contributors: Michel Hidalgo
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Mon, 20 Jul 2020 07:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (2.0.0-1jammy) jammy; urgency=high
+
+  * Update Quality Declarations to QL3. (#404 <https://github.com/ros2/rmw_fastrtps/issues/404>)
+  * Contributors: Michel Hidalgo
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Wed, 08 Jul 2020 07:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (1.1.0-1jammy) jammy; urgency=high
+
+  * Do not use string literals as implementation identifiers in tests. (#402 <https://github.com/ros2/rmw_fastrtps/issues/402>)
+  * Ensure compliant init options API implementations. (#399 <https://github.com/ros2/rmw_fastrtps/issues/399>)
+  * Finalize context iff shutdown. (#396 <https://github.com/ros2/rmw_fastrtps/issues/396>)
+  * Handle RMW_DEFAULT_DOMAIN_ID. (#394 <https://github.com/ros2/rmw_fastrtps/issues/394>)
+  * Make service wait for response reader (#390 <https://github.com/ros2/rmw_fastrtps/issues/390>)
+  * Contributors: Michel Hidalgo, Miguel Company
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Mon, 29 Jun 2020 07:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (1.0.1-1jammy) jammy; urgency=high
+
+  * Add Security Vulnerability Policy pointing to REP-2006 (#389 <https://github.com/ros2/rmw_fastrtps/issues/389>)
+  * Do not compile assert death tests in Release builds (#393 <https://github.com/ros2/rmw_fastrtps/issues/393>)
+  * Add test coverage for name mangling and namespacing-specific API (#388 <https://github.com/ros2/rmw_fastrtps/issues/388>)
+  * Add test coverage for GUID utilities (#387 <https://github.com/ros2/rmw_fastrtps/issues/387>)
+  * Drop unused TopicCache sources (#386 <https://github.com/ros2/rmw_fastrtps/issues/386>)
+  * Add test coverage for rmw_init_options API (#385 <https://github.com/ros2/rmw_fastrtps/issues/385>)
+  * Update QDs for 1.0 (#383 <https://github.com/ros2/rmw_fastrtps/issues/383>)
+  * Contributors: Chris Lalancette, Michel Hidalgo, Stephen Brawner
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Mon, 01 Jun 2020 07:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (1.0.0-1jammy) jammy; urgency=high
+
+  * Remove API related to manual by node liveliness. (#379 <https://github.com/ros2/rmw_fastrtps/issues/379>)
+  * Update quality declarations on feature testing. (#380 <https://github.com/ros2/rmw_fastrtps/issues/380>)
+  * Contributors: Ivan Santiago Paunovic, Michel Hidalgo
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Tue, 12 May 2020 07:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (0.9.1-1jammy) jammy; urgency=high
+
+  * Fill service_info timestamps from sample_info (#378 <https://github.com/ros2/rmw_fastrtps/issues/378>)
+  * Fix unused variabled warning (#377 <https://github.com/ros2/rmw_fastrtps/issues/377>)
+  * Add basic support for security logging plugin (#362 <https://github.com/ros2/rmw_fastrtps/issues/362>)
+  * Add package READMEs and QUALITY_DECLARATION files (#375 <https://github.com/ros2/rmw_fastrtps/issues/375>)
+  * Added doxyfiles (#372 <https://github.com/ros2/rmw_fastrtps/issues/372>)
+  * Contributors: Alejandro Hernández Cordero, Ingo Lütkebohle, Jacob Perron, Kyle Fazzari, brawner
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Fri, 08 May 2020 07:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (0.9.0-1jammy) jammy; urgency=high
+
+  * Feature/services timestamps. (#369 <https://github.com/ros2/rmw_fastrtps/issues/369>)
+  * Add support for taking a sequence of messages. (#366 <https://github.com/ros2/rmw_fastrtps/issues/366>)
+  * Fill message_info timestamp. (#368 <https://github.com/ros2/rmw_fastrtps/issues/368>)
+  * Export targets in a addition to include directories / libraries. (#371 <https://github.com/ros2/rmw_fastrtps/issues/371>)
+  * Support for API break on Fast RTPS 2.0. (#370 <https://github.com/ros2/rmw_fastrtps/issues/370>)
+  * security-context -> enclave. (#365 <https://github.com/ros2/rmw_fastrtps/issues/365>)
+  * Switch to one Participant per Context. (#312 <https://github.com/ros2/rmw_fastrtps/issues/312>)
+  * Correct error message when event is not supported. (#358 <https://github.com/ros2/rmw_fastrtps/issues/358>)
+  * Add rmw_*_event_init() functions. (#354 <https://github.com/ros2/rmw_fastrtps/issues/354>)
+  * Fixing type support C/CPP mix on rmw_fastrtps_dynamic_cpp. (#350 <https://github.com/ros2/rmw_fastrtps/issues/350>)
+  * Fix build warning in Ubuntu Focal. (#346 <https://github.com/ros2/rmw_fastrtps/issues/346>)
+  * Change rmw_topic_endpoint_info_array.count to .size. (#348 <https://github.com/ros2/rmw_fastrtps/issues/348>)
+  * Code style only: wrap after open parenthesis if not in one line. (#347 <https://github.com/ros2/rmw_fastrtps/issues/347>)
+  * Fix unprotected use of mutex-guarded variable. (#345 <https://github.com/ros2/rmw_fastrtps/issues/345>)
+  * Passing down type support information (#342 <https://github.com/ros2/rmw_fastrtps/issues/342>)
+  * Implement functions to get publisher and subcription informations like QoS policies from topic name. (#336 <https://github.com/ros2/rmw_fastrtps/issues/336>)
+  * Contributors: Dirk Thomas, Emerson Knapp, Ingo Lütkebohle, Ivan Santiago Paunovic, Jaison Titus, Miaofei Mei, Michael Carroll, Miguel Company, Mikael Arguedas
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Tue, 28 Apr 2020 07:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (0.8.1-1jammy) jammy; urgency=high
+
+  * Restrict traffic to localhost only if env var is provided (#331 <https://github.com/ros2/rmw_fastrtps/issues/331>)
+  * Added new functions which can be used to get rmw_qos_profile_t from WriterQos and ReaderQos (#328 <https://github.com/ros2/rmw_fastrtps/issues/328>)
+  * Renamed dds_qos_to_rmw_qos to dds_attributes_to_rmw_qos (#330 <https://github.com/ros2/rmw_fastrtps/issues/330>)
+  * Contributors: Brian Marchi, jaisontj
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Wed, 23 Oct 2019 07:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (0.8.0-1jammy) jammy; urgency=high
+
+  * Correct error message (#320 <https://github.com/ros2/rmw_fastrtps/issues/320>)
+  * Return specific error code when node is not found (#311 <https://github.com/ros2/rmw_fastrtps/issues/311>)
+  * Correct linter failure (#318 <https://github.com/ros2/rmw_fastrtps/issues/318>)
+  * Fix bug in graph API by node (#316 <https://github.com/ros2/rmw_fastrtps/issues/316>)
+  * fix method name change from 1.8.1->1.9.0 (#302 <https://github.com/ros2/rmw_fastrtps/issues/302>)
+  * Add missing lock guards for discovered_names and discovered_namespaces (#301 <https://github.com/ros2/rmw_fastrtps/issues/301>)
+  * Add function for getting clients by node (#293 <https://github.com/ros2/rmw_fastrtps/issues/293>)
+  * Enable manual_by_node and node liveliness assertion (#298 <https://github.com/ros2/rmw_fastrtps/issues/298>)
+  * Enable assert liveliness on publisher. (#296 <https://github.com/ros2/rmw_fastrtps/issues/296>)
+  * Use rcpputils::find_and_replace instead of std::regex_replace (#291 <https://github.com/ros2/rmw_fastrtps/issues/291>)
+  * Fix a comparison with a sign mismatch (#288 <https://github.com/ros2/rmw_fastrtps/issues/288>)
+  * Implement get_actual_qos() for subscriptions (#287 <https://github.com/ros2/rmw_fastrtps/issues/287>)
+  * add missing qos setings in get_actual_qos() (#284 <https://github.com/ros2/rmw_fastrtps/issues/284>)
+  * Fix ABBA deadlock.
+  * Contributors: Chris Lalancette, Emerson Knapp, Jacob Perron, M. M, Scott K Logan, William Woodall, ivanpauno
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Wed, 25 Sep 2019 07:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (0.7.3-1jammy) jammy; urgency=high
+
+  * Protection of discovered_names and discovered_namespaces (#283 <https://github.com/ros2/rmw_fastrtps/issues/283>)
+  * Disable all liveliness until it is actually supported (#282 <https://github.com/ros2/rmw_fastrtps/issues/282>)
+  * Contributors: Emerson Knapp, MiguelCompany
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Wed, 29 May 2019 07:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (0.7.2-1jammy) jammy; urgency=high
+
+  * fix log_debug typo in rmw_count (#279 <https://github.com/ros2/rmw_fastrtps/issues/279>)
+  * Fastrtps18 event callbacks policies (#275 <https://github.com/ros2/rmw_fastrtps/issues/275>)
+  * Centralize topic name creation logic and update to match FastRTPS 1.8 API (#272 <https://github.com/ros2/rmw_fastrtps/issues/272>)
+  * Contributors: 1r0b1n0, Emerson Knapp, Nick Burek
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Mon, 20 May 2019 07:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (0.7.1-1jammy) jammy; urgency=high
+
+  * Support arbitrary message namespaces  (#266 <https://github.com/ros2/rmw_fastrtps/issues/266>)
+  * Set more correct return values for unimplemented features (#276 <https://github.com/ros2/rmw_fastrtps/issues/276>)
+  * Add qos interfaces with no-op (#271 <https://github.com/ros2/rmw_fastrtps/issues/271>)
+  * Updates for preallocation API. (#274 <https://github.com/ros2/rmw_fastrtps/issues/274>)
+  * Fix logging in rmw_node_info_and_types.cpp (#273 <https://github.com/ros2/rmw_fastrtps/issues/273>)
+  * Contributors: Emerson Knapp, Jacob Perron, Michael Carroll, Ross Desmond, Thomas Moulard
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Wed, 08 May 2019 07:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (0.7.0-1jammy) jammy; urgency=high
+
+  * Thread safety annotation - minimally intrusive first pass (#259 <https://github.com/ros2/rmw_fastrtps/issues/259>)
+  * Add function to get publisher actual qos settings (#267 <https://github.com/ros2/rmw_fastrtps/issues/267>)
+  * Fixed race condition between taking sample and updating counter. (#264 <https://github.com/ros2/rmw_fastrtps/issues/264>)
+  * Fix cpplint error
+  * change count type to size_t to avoid warning (#262 <https://github.com/ros2/rmw_fastrtps/issues/262>)
+  * update listener logic for accurate counting (#262 <https://github.com/ros2/rmw_fastrtps/issues/262>)
+  * Make sure to include the C++ headers used by these headers. (#256 <https://github.com/ros2/rmw_fastrtps/issues/256>)
+  * pass context to wait set and fini context (#252 <https://github.com/ros2/rmw_fastrtps/issues/252>)
+  * Improve service_is_available logic to protect that client is waiting forever (#238 <https://github.com/ros2/rmw_fastrtps/issues/238>)
+  * Merge pull request #250 <https://github.com/ros2/rmw_fastrtps/issues/250> from ros2/support_static_lib
+  * use namespace_prefix from shared package
+  * make namespace_prefix header public
+  * Use empty() to check for an empty string (#247 <https://github.com/ros2/rmw_fastrtps/issues/247>)
+  * We can compare a std::string with a const char* using operator==, simplifies the code (#248 <https://github.com/ros2/rmw_fastrtps/issues/248>)
+  * Use empty() instead of size() to check if a vector/map contains elements and fixed some incorrect logging (#245 <https://github.com/ros2/rmw_fastrtps/issues/245>)
+  * Fix guard condition trigger error (#235 <https://github.com/ros2/rmw_fastrtps/issues/235>)
+  * Contributors: Chris Lalancette, Dirk Thomas, DongheeYe, Emerson Knapp, Jacob Perron, Johnny Willemsen, Ricardo González, William Woodall, ivanpauno
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Sat, 13 Apr 2019 07:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (0.6.1-1jammy) jammy; urgency=high
+
+  * Add topic cache object for managing topic relations (#236 <https://github.com/ros2/rmw_fastrtps/issues/236>)
+  * Fix lint: remove trailing whitespace (#244 <https://github.com/ros2/rmw_fastrtps/issues/244>)
+  * Fastrtps 1.7.0 (#233 <https://github.com/ros2/rmw_fastrtps/issues/233>)
+  * RMW_FastRTPS configuration from XML only (#243 <https://github.com/ros2/rmw_fastrtps/issues/243>)
+  * Methods to retrieve matched counts on pub/sub (#234 <https://github.com/ros2/rmw_fastrtps/issues/234>)
+  * use uint8_array (#240 <https://github.com/ros2/rmw_fastrtps/issues/240>)
+  * Contributors: Jacob Perron, Juan Carlos, Karsten Knese, Michael Carroll, MiguelCompany, Ross Desmond
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Thu, 06 Dec 2018 08:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (0.6.0-1jammy) jammy; urgency=high
+
+  * use new error handling API from rcutils (#231 <https://github.com/ros2/rmw_fastrtps/issues/231>)
+  * Add semicolons to all RCLCPP and RCUTILS macros. (#229 <https://github.com/ros2/rmw_fastrtps/issues/229>)
+  * separating identity and permission CAs (#227 <https://github.com/ros2/rmw_fastrtps/issues/227>)
+  * Include node namespaces in get_node_names (#224 <https://github.com/ros2/rmw_fastrtps/issues/224>)
+  * allow builtin reader/writer to reallocate memory if needed (#221 <https://github.com/ros2/rmw_fastrtps/issues/221>)
+  * Improve runtime performance of rmw_count_XXX functions (#216 <https://github.com/ros2/rmw_fastrtps/issues/216>) (#217 <https://github.com/ros2/rmw_fastrtps/issues/217>)
+  * Merge pull request #218 <https://github.com/ros2/rmw_fastrtps/issues/218> from ros2/pr203
+  * Refs #3061 <https://github.com/ros2/rmw_fastrtps/issues/3061>. Leaving common code only on rmw_fastrtps_shared_cpp.
+  * Refs #3061 <https://github.com/ros2/rmw_fastrtps/issues/3061>. Package rmw_fastrtps_cpp copied to rmw_fastrtps_shared_cpp.
+  * Contributors: Chris Lalancette, Dirk Thomas, Guillaume Autran, Michael Carroll, Miguel Company, Mikael Arguedas, William Woodall
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Fri, 16 Nov 2018 08:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (0.5.1-1jammy) jammy; urgency=high
+
+
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Thu, 28 Jun 2018 07:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (0.5.0-1jammy) jammy; urgency=high
+
+
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Sat, 23 Jun 2018 07:00:00 -0000
+
+ros-rolling-rmw-fastrtps-shared-cpp (0.4.0-1jammy) jammy; urgency=high
+
+
+
+ -- Michel Hidalgo <michel@ekumenlabs.com>  Fri, 08 Dec 2017 08:00:00 -0000
+
+

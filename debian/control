@@ -1,0 +1,12 @@
+Source: ros-rolling-rmw-fastrtps-shared-cpp
+Section: misc
+Priority: optional
+Maintainer: Michel Hidalgo <michel@ekumenlabs.com>
+Build-Depends: debhelper (>= 9.0.0), ros-rolling-ament-cmake-ros, ros-rolling-ament-lint-auto, ros-rolling-ament-lint-common, ros-rolling-fastcdr, ros-rolling-fastrtps, ros-rolling-fastrtps-cmake-module, ros-rolling-osrf-testing-tools-cpp, ros-rolling-rcpputils, ros-rolling-rcutils, ros-rolling-rmw, ros-rolling-rmw-dds-common, ros-rolling-rosidl-typesupport-introspection-c, ros-rolling-rosidl-typesupport-introspection-cpp, ros-rolling-tracetools, ros-rolling-ros-workspace
+Homepage: 
+Standards-Version: 3.9.2
+
+Package: ros-rolling-rmw-fastrtps-shared-cpp
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ros-rolling-ament-cmake, ros-rolling-fastcdr, ros-rolling-fastrtps, ros-rolling-fastrtps-cmake-module, ros-rolling-rcpputils, ros-rolling-rcutils, ros-rolling-rmw, ros-rolling-rmw-dds-common, ros-rolling-rosidl-typesupport-introspection-c, ros-rolling-rosidl-typesupport-introspection-cpp, ros-rolling-tracetools, ros-rolling-ros-workspace
+Description: Code shared on static and dynamic type support of rmw_fastrtps_cpp.
