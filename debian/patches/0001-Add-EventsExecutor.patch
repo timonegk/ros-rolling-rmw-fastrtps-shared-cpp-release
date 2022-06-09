@@ -1,31 +1,15 @@
-From: Timon <todo@todo.todo>
-Date: Fri, 20 May 2022 22:40:25 +0000
+From: Timon Engelke <timon.engelke@online.de>
+Date: Thu, 9 Jun 2022 12:43:15 +0200
 Subject: Add EventsExecutor
 
 ---
- CHANGELOG.rst                                      |  3 ++
  .../custom_publisher_info.hpp                      | 10 ----
  .../custom_subscriber_info.hpp                     | 22 --------
- package.xml                                        |  2 +-
  src/custom_publisher_info.cpp                      | 36 -------------
  src/custom_subscriber_info.cpp                     | 63 ----------------------
  src/rmw_event.cpp                                  | 29 +---------
- 7 files changed, 5 insertions(+), 160 deletions(-)
+ 5 files changed, 1 insertion(+), 159 deletions(-)
 
-diff --git a/CHANGELOG.rst b/CHANGELOG.rst
-index 6227a77..851f3da 100644
---- a/CHANGELOG.rst
-+++ b/CHANGELOG.rst
-@@ -2,6 +2,9 @@
- Changelog for package rmw_fastrtps_shared_cpp
- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
- 
-+6.3.0 (2022-05-03)
-+------------------
-+
- 6.2.1 (2022-03-28)
- ------------------
- * Address linter waning for windows. (`#592 <https://github.com/ros2/rmw_fastrtps/issues/592>`_)
 diff --git a/include/rmw_fastrtps_shared_cpp/custom_publisher_info.hpp b/include/rmw_fastrtps_shared_cpp/custom_publisher_info.hpp
 index 37db4ca..35f41d1 100644
 --- a/include/rmw_fastrtps_shared_cpp/custom_publisher_info.hpp
@@ -108,19 +92,6 @@ index a130f2c..fe1a84b 100644
    std::mutex * conditionMutex_ RCPPUTILS_TSA_GUARDED_BY(internalMutex_);
    std::condition_variable * conditionVariable_ RCPPUTILS_TSA_GUARDED_BY(internalMutex_);
  
-diff --git a/package.xml b/package.xml
-index 49262a6..0a2e4d5 100644
---- a/package.xml
-+++ b/package.xml
-@@ -2,7 +2,7 @@
- <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
- <package format="3">
-   <name>rmw_fastrtps_shared_cpp</name>
--  <version>6.2.1</version>
-+  <version>6.3.0</version>
-   <description>Code shared on static and dynamic type support of rmw_fastrtps_cpp.</description>
-   <maintainer email="michel@ekumenlabs.com">Michel Hidalgo</maintainer>
-   <maintainer email="michael.jeronimo@openrobotics.org">Michael Jeronimo</maintainer>
 diff --git a/src/custom_publisher_info.cpp b/src/custom_publisher_info.cpp
 index 9fc6e40..fdbdfbe 100644
 --- a/src/custom_publisher_info.cpp
