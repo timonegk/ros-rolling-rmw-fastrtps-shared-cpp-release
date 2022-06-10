@@ -1,3 +1,9 @@
+ros-rolling-rmw-fastrtps-shared-cpp (6.3.0-1jammy.events1) jammy; urgency=high
+
+  * Rebuild with support for lost messages 
+
+ -- Timon Engelke <debian@timonengelke.de>  Fri, 10 Jun 2022 20:07:58 +0200
+
 ros-rolling-rmw-fastrtps-shared-cpp (6.3.0-1jammy.events) jammy; urgency=high
 
   * Add EventsExecutor 
