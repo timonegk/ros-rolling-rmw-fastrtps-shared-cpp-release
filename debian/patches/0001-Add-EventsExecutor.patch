@@ -3,270 +3,614 @@ Date: Thu, 9 Jun 2022 12:43:15 +0200
 Subject: Add EventsExecutor
 
 ---
- .../custom_publisher_info.hpp                      | 10 ------
- .../custom_subscriber_info.hpp                     | 11 -------
- src/custom_publisher_info.cpp                      | 36 ----------------------
- src/custom_subscriber_info.cpp                     | 34 --------------------
- src/rmw_event.cpp                                  | 28 +----------------
- 5 files changed, 1 insertion(+), 118 deletions(-)
+ .../rmw_fastrtps_shared_cpp/custom_client_info.hpp | 32 ++--------
+ .../rmw_fastrtps_shared_cpp/custom_event_info.hpp  | 57 ++++++++++++++++--
+ .../custom_publisher_info.hpp                      |  9 ++-
+ .../custom_service_info.hpp                        | 32 ++--------
+ .../custom_subscriber_info.hpp                     | 59 +++++-------------
+ src/custom_publisher_info.cpp                      | 51 ++++++++--------
+ src/custom_subscriber_info.cpp                     | 69 +++++++++++++---------
+ src/rmw_event.cpp                                  |  9 +--
+ src/rmw_subscription.cpp                           |  2 +-
+ 9 files changed, 156 insertions(+), 164 deletions(-)
 
+diff --git a/include/rmw_fastrtps_shared_cpp/custom_client_info.hpp b/include/rmw_fastrtps_shared_cpp/custom_client_info.hpp
+index 9808170..d0e13fc 100644
+--- a/include/rmw_fastrtps_shared_cpp/custom_client_info.hpp
++++ b/include/rmw_fastrtps_shared_cpp/custom_client_info.hpp
+@@ -44,6 +44,7 @@
+ 
+ #include "rmw/event_callback_type.h"
+ 
++#include "rmw_fastrtps_shared_cpp/custom_event_info.hpp"
+ #include "rmw_fastrtps_shared_cpp/TypeSupport.hpp"
+ 
+ class ClientListener;
+@@ -99,7 +100,7 @@ public:
+     data.is_cdr_buffer = true;
+     data.data = response.buffer_.get();
+     data.impl = nullptr;    // not used when is_cdr_buffer is true
+-    if (reader->take_next_sample(&data, &response.sample_info_) == ReturnCode_t::RETCODE_OK) {
++    while (reader->take_next_sample(&data, &response.sample_info_) == ReturnCode_t::RETCODE_OK) {
+       if (response.sample_info_.valid_data) {
+         response.sample_identity_ = response.sample_info_.related_sample_identity;
+ 
+@@ -128,13 +129,7 @@ public:
+             list_has_data_.store(true);
+           }
+ 
+-          std::unique_lock<std::mutex> lock_mutex(on_new_response_m_);
+-
+-          if (on_new_response_cb_) {
+-            on_new_response_cb_(user_data_, 1);
+-          } else {
+-            unread_count_++;
+-          }
++          on_data_available_.call();
+         }
+       }
+     }
+@@ -198,20 +193,7 @@ public:
+     const void * user_data,
+     rmw_event_callback_t callback)
+   {
+-    std::unique_lock<std::mutex> lock_mutex(on_new_response_m_);
+-
+-    if (callback) {
+-      // Push events arrived before setting the the executor callback
+-      if (unread_count_) {
+-        callback(user_data, unread_count_);
+-        unread_count_ = 0;
+-      }
+-      user_data_ = user_data;
+-      on_new_response_cb_ = callback;
+-    } else {
+-      user_data_ = nullptr;
+-      on_new_response_cb_ = nullptr;
+-    }
++    on_data_available_.set_callback(user_data, callback);
+   }
+ 
+ private:
+@@ -234,10 +216,8 @@ private:
+   std::condition_variable * conditionVariable_ RCPPUTILS_TSA_GUARDED_BY(internalMutex_);
+   std::set<eprosima::fastrtps::rtps::GUID_t> publishers_;
+ 
+-  rmw_event_callback_t on_new_response_cb_{nullptr};
+-  const void * user_data_{nullptr};
+-  std::mutex on_new_response_m_;
+-  uint64_t unread_count_ = 0;
++  // Callback to call when the listener detects events
++  EventTypeCallback on_data_available_;
+ };
+ 
+ class ClientPubListener : public eprosima::fastdds::dds::DataWriterListener
+diff --git a/include/rmw_fastrtps_shared_cpp/custom_event_info.hpp b/include/rmw_fastrtps_shared_cpp/custom_event_info.hpp
+index d7df466..5124b46 100644
+--- a/include/rmw_fastrtps_shared_cpp/custom_event_info.hpp
++++ b/include/rmw_fastrtps_shared_cpp/custom_event_info.hpp
+@@ -15,8 +15,10 @@
+ #ifndef RMW_FASTRTPS_SHARED_CPP__CUSTOM_EVENT_INFO_HPP_
+ #define RMW_FASTRTPS_SHARED_CPP__CUSTOM_EVENT_INFO_HPP_
+ 
++#include <algorithm>
+ #include <atomic>
+ #include <condition_variable>
++#include <limits>
+ #include <list>
+ #include <memory>
+ #include <mutex>
+@@ -62,14 +64,10 @@ public:
+ 
+   // Provide handlers to perform an action when a
+   // new event from this listener has ocurred
+-  virtual void set_on_new_event_callback(
++  virtual rmw_ret_t set_on_new_event_callback(
++    rmw_event_type_t event_type,
+     const void * user_data,
+     rmw_event_callback_t callback) = 0;
+-
+-  rmw_event_callback_t on_new_event_cb_{nullptr};
+-  const void * user_data_{nullptr};
+-  uint64_t unread_events_count_ = 0;
+-  std::mutex on_new_event_m_;
+ };
+ 
+ class EventListenerInterface::ConditionalScopedLock
+@@ -105,4 +103,51 @@ struct CustomEventInfo
+   virtual EventListenerInterface * getListener() const = 0;
+ };
+ 
++class EventTypeCallback
++{
++public:
++  EventTypeCallback() = default;
++
++  explicit EventTypeCallback(size_t depth)
++  {
++    history_depth_ = (depth > 0) ? depth : std::numeric_limits<size_t>::max();
++  }
++
++  void set_callback(const void * user_data, rmw_event_callback_t callback)
++  {
++    std::lock_guard<std::mutex> lock(mutex_);
++
++    if (callback) {
++      if (unread_count_) {
++        size_t count = std::min(unread_count_, history_depth_);
++        callback(user_data, count);
++        unread_count_ = 0;
++      }
++      user_data_ = user_data;
++      callback_ = callback;
++    } else {
++      user_data_ = nullptr;
++      callback_ = nullptr;
++    }
++  }
++
++  void call()
++  {
++    std::lock_guard<std::mutex> lock(mutex_);
++
++    if (callback_) {
++      callback_(user_data_, 1);
++    } else {
++      unread_count_++;
++    }
++  }
++
++private:
++  std::mutex mutex_;
++  rmw_event_callback_t callback_{nullptr};
++  const void * user_data_{nullptr};
++  size_t unread_count_{0};
++  size_t history_depth_ = std::numeric_limits<size_t>::max();
++};
++
+ #endif  // RMW_FASTRTPS_SHARED_CPP__CUSTOM_EVENT_INFO_HPP_
 diff --git a/include/rmw_fastrtps_shared_cpp/custom_publisher_info.hpp b/include/rmw_fastrtps_shared_cpp/custom_publisher_info.hpp
-index 37db4ca..35f41d1 100644
+index 37db4ca..8ce1f0c 100644
 --- a/include/rmw_fastrtps_shared_cpp/custom_publisher_info.hpp
 +++ b/include/rmw_fastrtps_shared_cpp/custom_publisher_info.hpp
-@@ -61,7 +61,6 @@ public:
-   explicit PubListener(CustomPublisherInfo * info)
-   : deadline_changes_(false),
-     liveliness_changes_(false),
--    incompatible_qos_changes_(false),
-     conditionMutex_(nullptr),
-     conditionVariable_(nullptr)
-   {
-@@ -95,11 +94,6 @@ public:
-     eprosima::fastdds::dds::DataWriter * writer,
-     const eprosima::fastdds::dds::LivelinessLostStatus & status) final;
+@@ -107,7 +107,9 @@ public:
+   hasEvent(rmw_event_type_t event_type) const final;
  
--  RMW_FASTRTPS_SHARED_CPP_PUBLIC
--  void
--  on_offered_incompatible_qos(
--    eprosima::fastdds::dds::DataWriter *,
--    const eprosima::fastdds::dds::OfferedIncompatibleQosStatus &) final;
- 
-   // EventListenerInterface implementation
    RMW_FASTRTPS_SHARED_CPP_PUBLIC
-@@ -152,10 +146,6 @@ private:
-   eprosima::fastdds::dds::LivelinessLostStatus liveliness_lost_status_
-   RCPPUTILS_TSA_GUARDED_BY(internalMutex_);
+-  void set_on_new_event_callback(
++  rmw_ret_t
++  set_on_new_event_callback(
++    rmw_event_type_t event_type,
+     const void * user_data,
+     rmw_event_callback_t callback) final;
  
--  std::atomic_bool incompatible_qos_changes_;
--  eprosima::fastdds::dds::OfferedIncompatibleQosStatus incompatible_qos_status_
--  RCPPUTILS_TSA_GUARDED_BY(internalMutex_);
--
+@@ -158,6 +160,11 @@ private:
+ 
    std::mutex * conditionMutex_ RCPPUTILS_TSA_GUARDED_BY(internalMutex_);
    std::condition_variable * conditionVariable_ RCPPUTILS_TSA_GUARDED_BY(internalMutex_);
++
++  // The callbacks to call when the listener detects events
++  EventTypeCallback on_liveliness_lost_;
++  EventTypeCallback on_offered_deadline_missed_;
++  EventTypeCallback on_offered_incompatible_qos_;
  };
+ 
+ #endif  // RMW_FASTRTPS_SHARED_CPP__CUSTOM_PUBLISHER_INFO_HPP_
+diff --git a/include/rmw_fastrtps_shared_cpp/custom_service_info.hpp b/include/rmw_fastrtps_shared_cpp/custom_service_info.hpp
+index 0ddbfd0..ab5b828 100644
+--- a/include/rmw_fastrtps_shared_cpp/custom_service_info.hpp
++++ b/include/rmw_fastrtps_shared_cpp/custom_service_info.hpp
+@@ -42,6 +42,7 @@
+ 
+ #include "rmw/event_callback_type.h"
+ 
++#include "rmw_fastrtps_shared_cpp/custom_event_info.hpp"
+ #include "rmw_fastrtps_shared_cpp/guid_utils.hpp"
+ #include "rmw_fastrtps_shared_cpp/TypeSupport.hpp"
+ 
+@@ -212,7 +213,7 @@ public:
+     data.is_cdr_buffer = true;
+     data.data = request.buffer_;
+     data.impl = nullptr;    // not used when is_cdr_buffer is true
+-    if (reader->take_next_sample(&data, &request.sample_info_) == ReturnCode_t::RETCODE_OK) {
++    while (reader->take_next_sample(&data, &request.sample_info_) == ReturnCode_t::RETCODE_OK) {
+       if (request.sample_info_.valid_data) {
+         request.sample_identity_ = request.sample_info_.sample_identity;
+         // Use response subscriber guid (on related_sample_identity) when present.
+@@ -249,13 +250,7 @@ public:
+           list_has_data_.store(true);
+         }
+ 
+-        std::unique_lock<std::mutex> lock_mutex(on_new_request_m_);
+-
+-        if (on_new_request_cb_) {
+-          on_new_request_cb_(user_data_, 1);
+-        } else {
+-          unread_count_++;
+-        }
++        on_data_available_.call();
+       }
+     }
+   }
+@@ -313,20 +308,7 @@ public:
+     const void * user_data,
+     rmw_event_callback_t callback)
+   {
+-    std::unique_lock<std::mutex> lock_mutex(on_new_request_m_);
+-
+-    if (callback) {
+-      // Push events arrived before setting the the executor callback
+-      if (unread_count_) {
+-        callback(user_data, unread_count_);
+-        unread_count_ = 0;
+-      }
+-      user_data_ = user_data;
+-      on_new_request_cb_ = callback;
+-    } else {
+-      user_data_ = nullptr;
+-      on_new_request_cb_ = nullptr;
+-    }
++    on_data_available_.set_callback(user_data, callback);
+   }
+ 
+ private:
+@@ -337,10 +319,8 @@ private:
+   std::mutex * conditionMutex_ RCPPUTILS_TSA_GUARDED_BY(internalMutex_);
+   std::condition_variable * conditionVariable_ RCPPUTILS_TSA_GUARDED_BY(internalMutex_);
+ 
+-  rmw_event_callback_t on_new_request_cb_{nullptr};
+-  const void * user_data_{nullptr};
+-  std::mutex on_new_request_m_;
+-  uint64_t unread_count_ = 0;
++  // Callback to call when the listener detects events
++  EventTypeCallback on_data_available_;
+ };
+ 
+ #endif  // RMW_FASTRTPS_SHARED_CPP__CUSTOM_SERVICE_INFO_HPP_
 diff --git a/include/rmw_fastrtps_shared_cpp/custom_subscriber_info.hpp b/include/rmw_fastrtps_shared_cpp/custom_subscriber_info.hpp
-index a130f2c..3dec7b1 100644
+index a130f2c..1db3fa5 100644
 --- a/include/rmw_fastrtps_shared_cpp/custom_subscriber_info.hpp
 +++ b/include/rmw_fastrtps_shared_cpp/custom_subscriber_info.hpp
-@@ -89,7 +89,6 @@ public:
-     deadline_changes_(false),
-     liveliness_changes_(false),
-     sample_lost_changes_(false),
--    incompatible_qos_changes_(false),
-     conditionMutex_(nullptr),
-     conditionVariable_(nullptr)
-   {
-@@ -147,12 +146,6 @@ public:
-     eprosima::fastdds::dds::DataReader *,
-     const eprosima::fastdds::dds::SampleLostStatus &) final;
- 
--  RMW_FASTRTPS_SHARED_CPP_PUBLIC
--  void
--  on_requested_incompatible_qos(
--    eprosima::fastdds::dds::DataReader *,
--    const eprosima::fastdds::dds::RequestedIncompatibleQosStatus &) final;
--
-   // EventListenerInterface implementation
-   RMW_FASTRTPS_SHARED_CPP_PUBLIC
-   bool
-@@ -250,10 +243,6 @@ private:
-   eprosima::fastdds::dds::SampleLostStatus sample_lost_status_
-   RCPPUTILS_TSA_GUARDED_BY(internalMutex_);
- 
--  std::atomic_bool incompatible_qos_changes_;
--  eprosima::fastdds::dds::RequestedIncompatibleQosStatus incompatible_qos_status_
--  RCPPUTILS_TSA_GUARDED_BY(internalMutex_);
--
-   std::mutex * conditionMutex_ RCPPUTILS_TSA_GUARDED_BY(internalMutex_);
-   std::condition_variable * conditionVariable_ RCPPUTILS_TSA_GUARDED_BY(internalMutex_);
- 
-diff --git a/src/custom_publisher_info.cpp b/src/custom_publisher_info.cpp
-index 9fc6e40..fdbdfbe 100644
---- a/src/custom_publisher_info.cpp
-+++ b/src/custom_publisher_info.cpp
-@@ -13,11 +13,8 @@
- // limitations under the License.
- 
- #include "rmw_fastrtps_shared_cpp/custom_publisher_info.hpp"
--
- #include "fastdds/dds/core/status/BaseStatus.hpp"
- #include "fastdds/dds/core/status/DeadlineMissedStatus.hpp"
--
--#include "event_helpers.hpp"
- #include "types/event_types.hpp"
- 
- EventListenerInterface *
-@@ -79,25 +76,6 @@ void PubListener::on_liveliness_lost(
-   }
- }
- 
--void PubListener::on_offered_incompatible_qos(
--  eprosima::fastdds::dds::DataWriter * /* writer */,
--  const eprosima::fastdds::dds::OfferedIncompatibleQosStatus & status)
--{
--  std::lock_guard<std::mutex> lock(internalMutex_);
--
--  // the change to incompatible_qos_status_ needs to be mutually exclusive with
--  // rmw_wait() which checks hasEvent() and decides if wait() needs to be called
--  ConditionalScopedLock clock(conditionMutex_, conditionVariable_);
--
--  // Assign absolute values
--  incompatible_qos_status_.last_policy_id = status.last_policy_id;
--  incompatible_qos_status_.total_count = status.total_count;
--  // Accumulate deltas
--  incompatible_qos_status_.total_count_change += status.total_count_change;
--
--  incompatible_qos_changes_.store(true, std::memory_order_relaxed);
--}
--
- bool PubListener::hasEvent(rmw_event_type_t event_type) const
- {
-   assert(rmw_fastrtps_shared_cpp::internal::is_event_supported(event_type));
-@@ -106,8 +84,6 @@ bool PubListener::hasEvent(rmw_event_type_t event_type) const
-       return liveliness_changes_.load(std::memory_order_relaxed);
-     case RMW_EVENT_OFFERED_DEADLINE_MISSED:
-       return deadline_changes_.load(std::memory_order_relaxed);
--    case RMW_EVENT_OFFERED_QOS_INCOMPATIBLE:
--      return incompatible_qos_changes_.load(std::memory_order_relaxed);
-     default:
-       break;
-   }
-@@ -157,18 +133,6 @@ bool PubListener::takeNextEvent(rmw_event_type_t event_type, void * event_info)
-         deadline_changes_.store(false, std::memory_order_relaxed);
-       }
-       break;
--    case RMW_EVENT_OFFERED_QOS_INCOMPATIBLE:
--      {
--        auto rmw_data = static_cast<rmw_requested_qos_incompatible_event_status_t *>(event_info);
--        rmw_data->total_count = incompatible_qos_status_.total_count;
--        rmw_data->total_count_change = incompatible_qos_status_.total_count_change;
--        rmw_data->last_policy_kind =
--          rmw_fastrtps_shared_cpp::internal::dds_qos_policy_to_rmw_qos_policy(
--          incompatible_qos_status_.last_policy_id);
--        incompatible_qos_status_.total_count_change = 0;
--        incompatible_qos_changes_.store(false, std::memory_order_relaxed);
--      }
--      break;
-     default:
-       return false;
-   }
-diff --git a/src/custom_subscriber_info.cpp b/src/custom_subscriber_info.cpp
-index 6c24c35..92a4bd5 100644
---- a/src/custom_subscriber_info.cpp
-+++ b/src/custom_subscriber_info.cpp
-@@ -17,7 +17,6 @@
- #include "fastdds/dds/core/status/DeadlineMissedStatus.hpp"
- #include "fastdds/dds/core/status/LivelinessChangedStatus.hpp"
- 
--#include "event_helpers.hpp"
- #include "types/event_types.hpp"
- 
- EventListenerInterface *
-@@ -99,25 +98,6 @@ void SubListener::on_sample_lost(
-   sample_lost_changes_.store(true, std::memory_order_relaxed);
- }
- 
--void SubListener::on_requested_incompatible_qos(
--  eprosima::fastdds::dds::DataReader * /* reader */,
--  const eprosima::fastdds::dds::RequestedIncompatibleQosStatus & status)
--{
--  std::lock_guard<std::mutex> lock(internalMutex_);
--
--  // the change to incompatible_qos_status_ needs to be mutually exclusive with
--  // rmw_wait() which checks hasEvent() and decides if wait() needs to be called
--  ConditionalScopedLock clock(conditionMutex_, conditionVariable_);
--
--  // Assign absolute values
--  incompatible_qos_status_.last_policy_id = status.last_policy_id;
--  incompatible_qos_status_.total_count = status.total_count;
--  // Accumulate deltas
--  incompatible_qos_status_.total_count_change += status.total_count_change;
--
--  incompatible_qos_changes_.store(true, std::memory_order_relaxed);
--}
--
- bool SubListener::hasEvent(rmw_event_type_t event_type) const
- {
-   assert(rmw_fastrtps_shared_cpp::internal::is_event_supported(event_type));
-@@ -128,8 +108,6 @@ bool SubListener::hasEvent(rmw_event_type_t event_type) const
-       return deadline_changes_.load(std::memory_order_relaxed);
-     case RMW_EVENT_MESSAGE_LOST:
-       return sample_lost_changes_.load(std::memory_order_relaxed);
--    case RMW_EVENT_REQUESTED_QOS_INCOMPATIBLE:
--      return incompatible_qos_changes_.load(std::memory_order_relaxed);
-     default:
-       break;
-   }
-@@ -192,18 +170,6 @@ bool SubListener::takeNextEvent(rmw_event_type_t event_type, void * event_info)
-         sample_lost_changes_.store(false, std::memory_order_relaxed);
-       }
-       break;
--    case RMW_EVENT_REQUESTED_QOS_INCOMPATIBLE:
--      {
--        auto rmw_data = static_cast<rmw_requested_qos_incompatible_event_status_t *>(event_info);
--        rmw_data->total_count = incompatible_qos_status_.total_count;
--        rmw_data->total_count_change = incompatible_qos_status_.total_count_change;
--        rmw_data->last_policy_kind =
--          rmw_fastrtps_shared_cpp::internal::dds_qos_policy_to_rmw_qos_policy(
--          incompatible_qos_status_.last_policy_id);
--        incompatible_qos_status_.total_count_change = 0;
--        incompatible_qos_changes_.store(false, std::memory_order_relaxed);
--      }
--      break;
-     default:
-       return false;
-   }
-diff --git a/src/rmw_event.cpp b/src/rmw_event.cpp
-index ccc5375..6ba8323 100644
---- a/src/rmw_event.cpp
-+++ b/src/rmw_event.cpp
 @@ -16,7 +16,6 @@
+ #define RMW_FASTRTPS_SHARED_CPP__CUSTOM_SUBSCRIBER_INFO_HPP_
  
- #include "rmw/impl/cpp/macros.hpp"
+ #include <atomic>
+-#include <algorithm>
+ #include <condition_variable>
+ #include <limits>
+ #include <memory>
+@@ -91,9 +90,9 @@ public:
+     sample_lost_changes_(false),
+     incompatible_qos_changes_(false),
+     conditionMutex_(nullptr),
+-    conditionVariable_(nullptr)
++    conditionVariable_(nullptr),
++    on_data_available_(qos_depth)
+   {
+-    qos_depth_ = (qos_depth > 0) ? qos_depth : std::numeric_limits<size_t>::max();
+     // Field is not used right now
+     (void)info;
+   }
+@@ -115,19 +114,13 @@ public:
+     update_has_data(reader);
+   }
  
--#include "event_helpers.hpp"
- #include "rmw_fastrtps_shared_cpp/custom_event_info.hpp"
- #include "rmw_fastrtps_shared_cpp/rmw_common.hpp"
- #include "types/event_types.hpp"
-@@ -26,9 +25,7 @@ static const std::unordered_set<rmw_event_type_t> g_rmw_event_type_set{
-   RMW_EVENT_REQUESTED_DEADLINE_MISSED,
-   RMW_EVENT_LIVELINESS_LOST,
-   RMW_EVENT_OFFERED_DEADLINE_MISSED,
--  RMW_EVENT_MESSAGE_LOST,
--  RMW_EVENT_OFFERED_QOS_INCOMPATIBLE,
--  RMW_EVENT_REQUESTED_QOS_INCOMPATIBLE
-+  RMW_EVENT_MESSAGE_LOST
++  RMW_FASTRTPS_SHARED_CPP_PUBLIC
+   void
+-  on_data_available(eprosima::fastdds::dds::DataReader * reader) final
+-  {
+-    update_has_data(reader);
+-
+-    std::unique_lock<std::mutex> lock_mutex(on_new_message_m_);
++  on_data_available(eprosima::fastdds::dds::DataReader * reader) final;
+ 
+-    if (on_new_message_cb_) {
+-      on_new_message_cb_(user_data_, 1);
+-    } else {
+-      new_data_unread_count_++;
+-    }
+-  }
++  RMW_FASTRTPS_SHARED_CPP_PUBLIC
++  void
++  set_on_data_available_callback(const void * user_data, rmw_event_callback_t callback);
+ 
+   RMW_FASTRTPS_SHARED_CPP_PUBLIC
+   void
+@@ -159,7 +152,9 @@ public:
+   hasEvent(rmw_event_type_t event_type) const final;
+ 
+   RMW_FASTRTPS_SHARED_CPP_PUBLIC
+-  void set_on_new_event_callback(
++  rmw_ret_t
++  set_on_new_event_callback(
++    rmw_event_type_t event_type,
+     const void * user_data,
+     rmw_event_callback_t callback) final;
+ 
+@@ -209,30 +204,6 @@ public:
+     return publishers_.size();
+   }
+ 
+-  // Provide handlers to perform an action when a
+-  // new event from this listener has ocurred
+-  void
+-  set_on_new_message_callback(
+-    const void * user_data,
+-    rmw_event_callback_t callback)
+-  {
+-    std::unique_lock<std::mutex> lock_mutex(on_new_message_m_);
+-
+-    if (callback) {
+-      // Push events arrived before setting the executor's callback
+-      if (new_data_unread_count_) {
+-        auto unread_count = std::min(new_data_unread_count_, qos_depth_);
+-        callback(user_data, unread_count);
+-        new_data_unread_count_ = 0;
+-      }
+-      user_data_ = user_data;
+-      on_new_message_cb_ = callback;
+-    } else {
+-      user_data_ = nullptr;
+-      on_new_message_cb_ = nullptr;
+-    }
+-  }
+-
+ private:
+   mutable std::mutex internalMutex_;
+ 
+@@ -259,10 +230,12 @@ private:
+ 
+   std::set<eprosima::fastrtps::rtps::GUID_t> publishers_ RCPPUTILS_TSA_GUARDED_BY(internalMutex_);
+ 
+-  rmw_event_callback_t on_new_message_cb_{nullptr};
+-  std::mutex on_new_message_m_;
+-  size_t qos_depth_;
+-  size_t new_data_unread_count_ = 0;
++  // The callbacks to call when the listener detects events
++  EventTypeCallback on_sample_lost_;
++  EventTypeCallback on_data_available_;
++  EventTypeCallback on_liveliness_changed_;
++  EventTypeCallback on_requested_deadline_missed_;
++  EventTypeCallback on_requested_incompatible_qos_;
  };
  
- namespace rmw_fastrtps_shared_cpp
-@@ -41,29 +38,6 @@ bool is_event_supported(rmw_event_type_t event_type)
-   return g_rmw_event_type_set.count(event_type) == 1;
+ #endif  // RMW_FASTRTPS_SHARED_CPP__CUSTOM_SUBSCRIBER_INFO_HPP_
+diff --git a/src/custom_publisher_info.cpp b/src/custom_publisher_info.cpp
+index 9fc6e40..2bb61e6 100644
+--- a/src/custom_publisher_info.cpp
++++ b/src/custom_publisher_info.cpp
+@@ -12,6 +12,8 @@
+ // See the License for the specific language governing permissions and
+ // limitations under the License.
+ 
++#include "rmw/error_handling.h"
++
+ #include "rmw_fastrtps_shared_cpp/custom_publisher_info.hpp"
+ 
+ #include "fastdds/dds/core/status/BaseStatus.hpp"
+@@ -44,13 +46,7 @@ PubListener::on_offered_deadline_missed(
+ 
+   deadline_changes_.store(true, std::memory_order_relaxed);
+ 
+-  std::unique_lock<std::mutex> lock_mutex(on_new_event_m_);
+-
+-  if (on_new_event_cb_) {
+-    on_new_event_cb_(user_data_, 1);
+-  } else {
+-    unread_events_count_++;
+-  }
++  on_offered_deadline_missed_.call();
  }
  
--rmw_qos_policy_kind_t dds_qos_policy_to_rmw_qos_policy(
--  eprosima::fastdds::dds::QosPolicyId_t policy_id)
--{
--  using eprosima::fastdds::dds::QosPolicyId_t;
--
--  switch (policy_id) {
--    case QosPolicyId_t::DURABILITY_QOS_POLICY_ID:
--      return RMW_QOS_POLICY_DURABILITY;
--    case QosPolicyId_t::DEADLINE_QOS_POLICY_ID:
--      return RMW_QOS_POLICY_DEADLINE;
--    case QosPolicyId_t::LIVELINESS_QOS_POLICY_ID:
--      return RMW_QOS_POLICY_LIVELINESS;
--    case QosPolicyId_t::RELIABILITY_QOS_POLICY_ID:
--      return RMW_QOS_POLICY_RELIABILITY;
--    case QosPolicyId_t::HISTORY_QOS_POLICY_ID:
--      return RMW_QOS_POLICY_HISTORY;
--    case QosPolicyId_t::LIFESPAN_QOS_POLICY_ID:
--      return RMW_QOS_POLICY_LIFESPAN;
--    default:
--      return RMW_QOS_POLICY_INVALID;
--  }
--}
--
- }  // namespace internal
+ void PubListener::on_liveliness_lost(
+@@ -70,13 +66,7 @@ void PubListener::on_liveliness_lost(
  
- rmw_ret_t
+   liveliness_changes_.store(true, std::memory_order_relaxed);
+ 
+-  std::unique_lock<std::mutex> lock_mutex(on_new_event_m_);
+-
+-  if (on_new_event_cb_) {
+-    on_new_event_cb_(user_data_, 1);
+-  } else {
+-    unread_events_count_++;
+-  }
++  on_liveliness_lost_.call();
+ }
+ 
+ void PubListener::on_offered_incompatible_qos(
+@@ -96,6 +86,8 @@ void PubListener::on_offered_incompatible_qos(
+   incompatible_qos_status_.total_count_change += status.total_count_change;
+ 
+   incompatible_qos_changes_.store(true, std::memory_order_relaxed);
++
++  on_offered_incompatible_qos_.call();
+ }
+ 
+ bool PubListener::hasEvent(rmw_event_type_t event_type) const
+@@ -114,24 +106,27 @@ bool PubListener::hasEvent(rmw_event_type_t event_type) const
+   return false;
+ }
+ 
+-void PubListener::set_on_new_event_callback(
++rmw_ret_t PubListener::set_on_new_event_callback(
++  rmw_event_type_t event_type,
+   const void * user_data,
+   rmw_event_callback_t callback)
+ {
+-  std::unique_lock<std::mutex> lock_mutex(on_new_event_m_);
+-
+-  if (callback) {
+-    // Push events arrived before setting the executor's callback
+-    if (unread_events_count_) {
+-      callback(user_data, unread_events_count_);
+-      unread_events_count_ = 0;
+-    }
+-    user_data_ = user_data;
+-    on_new_event_cb_ = callback;
+-  } else {
+-    user_data_ = nullptr;
+-    on_new_event_cb_ = nullptr;
++  switch (event_type) {
++    case RMW_EVENT_LIVELINESS_LOST:
++      on_liveliness_lost_.set_callback(user_data, callback);
++      break;
++    case RMW_EVENT_OFFERED_DEADLINE_MISSED:
++      on_offered_deadline_missed_.set_callback(user_data, callback);
++      break;
++    case RMW_EVENT_OFFERED_QOS_INCOMPATIBLE:
++      on_offered_incompatible_qos_.set_callback(user_data, callback);
++      break;
++    default:
++      RMW_SET_ERROR_MSG("provided event_type is not supported");
++      return RMW_RET_UNSUPPORTED;
++      break;
+   }
++  return RMW_RET_OK;
+ }
+ 
+ bool PubListener::takeNextEvent(rmw_event_type_t event_type, void * event_info)
+diff --git a/src/custom_subscriber_info.cpp b/src/custom_subscriber_info.cpp
+index 6c24c35..138ad2c 100644
+--- a/src/custom_subscriber_info.cpp
++++ b/src/custom_subscriber_info.cpp
+@@ -44,13 +44,7 @@ SubListener::on_requested_deadline_missed(
+ 
+   deadline_changes_.store(true, std::memory_order_relaxed);
+ 
+-  std::unique_lock<std::mutex> lock_mutex(on_new_event_m_);
+-
+-  if (on_new_event_cb_) {
+-    on_new_event_cb_(user_data_, 1);
+-  } else {
+-    unread_events_count_++;
+-  }
++  on_requested_deadline_missed_.call();
+ }
+ 
+ void SubListener::on_liveliness_changed(
+@@ -72,13 +66,7 @@ void SubListener::on_liveliness_changed(
+ 
+   liveliness_changes_.store(true, std::memory_order_relaxed);
+ 
+-  std::unique_lock<std::mutex> lock_mutex(on_new_event_m_);
+-
+-  if (on_new_event_cb_) {
+-    on_new_event_cb_(user_data_, 1);
+-  } else {
+-    unread_events_count_++;
+-  }
++  on_liveliness_changed_.call();
+ }
+ 
+ void SubListener::on_sample_lost(
+@@ -97,6 +85,8 @@ void SubListener::on_sample_lost(
+   sample_lost_status_.total_count_change += status.total_count_change;
+ 
+   sample_lost_changes_.store(true, std::memory_order_relaxed);
++
++  on_sample_lost_.call();
+ }
+ 
+ void SubListener::on_requested_incompatible_qos(
+@@ -116,6 +106,15 @@ void SubListener::on_requested_incompatible_qos(
+   incompatible_qos_status_.total_count_change += status.total_count_change;
+ 
+   incompatible_qos_changes_.store(true, std::memory_order_relaxed);
++
++  on_requested_incompatible_qos_.call();
++}
++
++void SubListener::on_data_available(
++  eprosima::fastdds::dds::DataReader * reader)
++{
++  update_has_data(reader);
++  on_data_available_.call();
+ }
+ 
+ bool SubListener::hasEvent(rmw_event_type_t event_type) const
+@@ -136,25 +135,37 @@ bool SubListener::hasEvent(rmw_event_type_t event_type) const
+   return false;
+ }
+ 
+-void SubListener::set_on_new_event_callback(
++rmw_ret_t SubListener::set_on_new_event_callback(
++  rmw_event_type_t event_type,
+   const void * user_data,
+   rmw_event_callback_t callback)
+ {
+-  std::unique_lock<std::mutex> lock_mutex(on_new_event_m_);
+-
+-  if (callback) {
+-    // Push events arrived before setting the executor's callback
+-    if (unread_events_count_) {
+-      callback(user_data, unread_events_count_);
+-      unread_events_count_ = 0;
+-    }
+-    user_data_ = user_data;
+-    on_new_event_cb_ = callback;
+-  } else {
+-    user_data_ = nullptr;
+-    on_new_event_cb_ = nullptr;
+-    return;
++  switch (event_type) {
++    case RMW_EVENT_MESSAGE_LOST:
++      on_sample_lost_.set_callback(user_data, callback);
++      break;
++    case RMW_EVENT_LIVELINESS_CHANGED:
++      on_liveliness_changed_.set_callback(user_data, callback);
++      break;
++    case RMW_EVENT_REQUESTED_DEADLINE_MISSED:
++      on_requested_deadline_missed_.set_callback(user_data, callback);
++      break;
++    case RMW_EVENT_REQUESTED_QOS_INCOMPATIBLE:
++      on_requested_incompatible_qos_.set_callback(user_data, callback);
++      break;
++    default:
++      RMW_SET_ERROR_MSG("provided event_type is not supported");
++      return RMW_RET_UNSUPPORTED;
++      break;
+   }
++  return RMW_RET_OK;
++}
++
++void SubListener::set_on_data_available_callback(
++  const void * user_data,
++  rmw_event_callback_t callback)
++{
++  on_data_available_.set_callback(user_data, callback);
+ }
+ 
+ bool SubListener::takeNextEvent(rmw_event_type_t event_type, void * event_info)
+diff --git a/src/rmw_event.cpp b/src/rmw_event.cpp
+index ccc5375..30898d2 100644
+--- a/src/rmw_event.cpp
++++ b/src/rmw_event.cpp
+@@ -102,10 +102,11 @@ __rmw_event_set_callback(
+   const void * user_data)
+ {
+   auto custom_event_info = static_cast<CustomEventInfo *>(rmw_event->data);
+-  custom_event_info->getListener()->set_on_new_event_callback(
+-    user_data,
+-    callback);
+-  return RMW_RET_OK;
++
++  auto listener = custom_event_info->getListener();
++
++  return listener->set_on_new_event_callback(
++    rmw_event->event_type, user_data, callback);
+ }
+ 
+ }  // namespace rmw_fastrtps_shared_cpp
+diff --git a/src/rmw_subscription.cpp b/src/rmw_subscription.cpp
+index a521b1a..1ccd44d 100644
+--- a/src/rmw_subscription.cpp
++++ b/src/rmw_subscription.cpp
+@@ -267,7 +267,7 @@ __rmw_subscription_set_on_new_message_callback(
+   const void * user_data)
+ {
+   auto custom_subscriber_info = static_cast<CustomSubscriberInfo *>(rmw_subscription->data);
+-  custom_subscriber_info->listener_->set_on_new_message_callback(
++  custom_subscriber_info->listener_->set_on_data_available_callback(
+     user_data,
+     callback);
+   return RMW_RET_OK;
